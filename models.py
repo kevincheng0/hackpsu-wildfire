@@ -8,8 +8,8 @@ class Cell:
     ASH_STATE = 4
     FOREST_BURN_TIME = 0.8
     GRASS_BURN_TIME = 0.1
-
-    def __init__(self, x, y, size, state, fire):
+    STANDARD_ELEVATION = 0.5
+    def __init__(self, x, y, size, state, fire, elevation):
         self.x = x
         self.y = y
         self.size = size
@@ -33,6 +33,9 @@ class Cell:
             return True
         else:
             return False
+        
+    def __repr__(self):
+        return f"{self.x}, {self.y}: {self.state}, {self.fire}"
 
 class Landscape:
 
@@ -40,9 +43,11 @@ class Landscape:
         self.rows = rows
         self.cols = cols
         self.cell_size = cell_size
-        self.grid = [[Cell(x, y, cell_size, Cell.EMPTY_STATE, False) for x in range(cols)] for y in range(rows)]
         self.wind = wind    # radians
 
+    def init_grid(self):
+        self.grid = [[Cell(x, y, cell_size, Cell.EMPTY_STATE, False, Cell.STANDARD_ELEVATION) for x in range(cols)] for y in range(rows)]
+        
     def update_cell(self, x, y, new_state = None, new_elevation = None, fire = False):
         if new_state:
             self.grid[y][x].update_state(new_state)
@@ -57,9 +62,12 @@ class Landscape:
         self.wind = wind
 
     # get some better values
-    def wind_weight(self, wind, direction):
-        angle = np.arctan(direction[0] / direction[1])
-        if wind:
-            return (np.cos(wind - angle)**2 + 0.2) / 1.3
+    def wind_weight(self, dx, dy):
+        angle = np.arctan(dx / dy)
+        if self.wind:
+            return (np.cos(self.wind - angle)**2 + 0.2) / 1.3
         else:
             return 0.5
+
+    def __repr__(self):
+        return f"{self.grid}"
