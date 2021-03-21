@@ -2,12 +2,12 @@ from tkinter import *
 import numpy as np
 
 class Cell():
-    EMPTY_COLOR_BG = "white"
-    EMPTY_COLOR_BORDER = "white"
-    FILLED_COLOR_BG = "green"
-    FILLED_COLOR_BORDER = "green"
-    FIRE_COLOR_BG = "red"
-    FIRE_COLOR_BORDER = "red"
+    EMPTY_COLOR_BG = "PeachPuff3"
+    EMPTY_COLOR_BORDER = "PeachPuff3"
+    FILLED_COLOR_BG = "forest green"
+    FILLED_COLOR_BORDER = "forest green"
+    FIRE_COLOR_BG = "Coral2"
+    FIRE_COLOR_BORDER = "Coral2"
     EMPTY_STATE = 0
     FOREST_STATE = 1
     FIRE_STATE = 2
@@ -54,6 +54,7 @@ class Cell():
             outline_colour = Cell.FIRE_COLOR_BORDER
             self.fill = True
             self.state = Cell.FIRE_STATE
+            self.old_fire = False
 
             xmin = self.abs * self.size
             xmax = xmin + self.size
@@ -61,6 +62,9 @@ class Cell():
             ymax = ymin + self.size
 
             self.master.create_rectangle(xmin, ymin, xmax, ymax, fill = fill_colour, outline = outline_colour, tag = "cell")
+    
+    def update_fire(self):
+        self.old_fire = not self.old_fire
 
 class CellGrid(Canvas):
     FOREST_FRACTION = 2
@@ -68,16 +72,23 @@ class CellGrid(Canvas):
     BRUSH_REMOVE_TREE = "remove_tree"
     BRUSH_ADD_FIRE = "add_fire"
     BRUSH_DEBUG = "debug"
+    NY = ([0, 1, 1, 1, 0, -1, -1, -1])
+    NX = ([1, 1, 0, -1, -1, -1, 0, 1])
+    NO_WIND = [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
+    WIND_N = [0.4, 0.7, 0.9, 0.7, 0.4, 0.1, 0.07, 0.1]
+    WIND_E = [0.07, 0.1, 0.4, 0.7, 0.9, 0.7, 0.4, 0.1]
+    WIND_S = [0.4, 0.1, 0.07, 0.1, 0.4, 0.7, 0.9, 0.7]
+    WIND_W = [0.9, 0.7, 0.4, 0.1, 0.07, 0.1, 0.4, 0.7]
 
     def __init__(self,master, rowNumber, columnNumber, cellSize, *args, **kwargs):
-        Canvas.__init__(self, master, width = cellSize * columnNumber , height = cellSize * rowNumber, *args, **kwargs)
+        Canvas.__init__(self, master, width = cellSize * columnNumber , height = cellSize * rowNumber, bg = "sienna4")
 
         self.winfo_toplevel().title("Basic Fire Model")
         self.cellSize = cellSize
         self.rows = rowNumber
         self.cols = columnNumber
         self.brush = CellGrid.BRUSH_ADD_TREE
-
+        self.wind = CellGrid.NO_WIND
         self.grid = [[0 for x in range(self.cols)] for y in range(self.rows)]
         self.init_grid()
 
@@ -86,8 +97,10 @@ class CellGrid(Canvas):
 
         #bind click action
         self.bind("<Button-1>", self.handleMouseClick)  
+
         #bind moving while clicking
         self.bind("<B1-Motion>", self.handleMouseMotion)
+
         #bind release button action - clear the memory of midified cells.
         self.bind("<ButtonRelease-1>", lambda event: self.switched.clear())
 
@@ -117,7 +130,7 @@ class CellGrid(Canvas):
         cell = self.grid[row][column]
 
         if self.brush == CellGrid.BRUSH_DEBUG:
-            print(f"fill: {cell.fill}, state: {cell.state}")
+            print(f"fill: {cell.fill}, state: {cell.state}, wind: {self.wind}")
 
         if self.brush == CellGrid.BRUSH_ADD_FIRE:
             #print("lighting fire")
@@ -128,7 +141,7 @@ class CellGrid(Canvas):
             cell._switch()
             cell.draw()
             
-        self.switched.append(cell)         # add the cell to the list of cell switched during the click
+        self.switched.append(cell)
  
 
     def handleMouseMotion(self, event):
@@ -173,3 +186,18 @@ class CellGrid(Canvas):
 
     def debug(self):
         self.brush = CellGrid.BRUSH_DEBUG
+
+    def no_wind(self):
+        self.wind = CellGrid.NO_WIND
+
+    def wind_N(self):
+        self.wind = CellGrid.WIND_N
+
+    def wind_E(self):
+        self.wind = CellGrid.WIND_E
+
+    def wind_S(self):
+        self.wind = CellGrid.WIND_S
+
+    def wind_W(self):
+        self.wind = CellGrid.WIND_W

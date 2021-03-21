@@ -1,13 +1,10 @@
 from tkinter import *
 import numpy as np
-import time
 from models import Cell, CellGrid
 
 
-
-NY = ([-1,-1,-1,0,0,1,1,1])
-NX = ([-1,0,1,-1,1,-1,0,1])
-NZ=([.13,.13,.13,.13,.9,.13,.9,.9])
+NY = ([0, 1, 1, 1, 0, -1, -1, -1])
+NX = ([1, 1, 0, -1, -1, -1, 0, 1])
 
 def run_app():
     #print("looping")
@@ -16,19 +13,33 @@ def run_app():
         for x in range(frm_grid.cols):
             cell = frm_grid.grid[y][x]
 
-            #TODO: Add fuel state, elevation, water, object deletion, shift wind
             if cell.state == Cell.FIRE_STATE:
-                cell._switch()
-                cell.draw()
-
-            elif cell.state == Cell.FOREST_STATE:
-
+                adj_trees = 0
                 for i in range(0, 7):
                     new_y = y + NY[i]
                     new_x = x + NX[i]
                     if new_y < 0 or new_y >= frm_grid.cols or new_x < 0 or new_x >= frm_grid.rows:
                         continue
-                    if frm_grid.grid[new_y][new_x].state == Cell.FIRE_STATE and np.random.random() <= NZ[i]:
+                    else:
+                        if frm_grid.grid[new_y][new_x].state == Cell.FOREST_STATE:
+                            adj_trees += 1
+
+                if np.random.random() <= 0.2 or adj_trees == 0:
+                    cell._switch()
+                    cell.draw()
+                else:
+                    cell.update_fire()
+
+            if cell.state == Cell.FOREST_STATE:
+
+                for i in range(0, 7):
+                    new_y = y + CellGrid.NY[i]
+                    new_x = x + CellGrid.NX[i]
+                    if new_y < 0 or new_y >= frm_grid.cols or new_x < 0 or new_x >= frm_grid.rows:
+                        continue
+                        
+                    adj_cell = frm_grid.grid[new_y][new_x]
+                    if adj_cell.state == Cell.FIRE_STATE and adj_cell.old_fire and np.random.random() <= frm_grid.wind[i]:
                         cell.light_fire()
                         break
 
@@ -40,15 +51,20 @@ def run_app():
 
 if __name__ == "__main__":
     root = Tk()
-    cols = 50
-    rows = 50
-    print(rows, cols)
+    cols = 100
+    rows = 100
+    #print(rows, cols)
 
-    frm_grid = CellGrid(root, rows, cols, 10, bg = "snow")
+    root.configure(background="PeachPuff3")
+
+    frm_grid = CellGrid(root, rows, cols, 5, bg = "snow")
     frm_grid.pack()
 
-    frm_ui = Frame(bg = "LightSteelBlue3", width = cols * 10, relief = "raised")
+    frm_ui = Frame(bg = "PeachPuff4", width = cols * 10, relief = "raised")
     frm_ui.pack(fill = "both", side = "bottom")
+
+    frm_ui_2 = Frame(bg = "PeachPuff4", width = cols * 10, relief = "raised")
+    frm_ui_2.pack(side = "bottom")
 
     btn_run = Button(frm_ui, command = run_app, text = "Start", width = 10, height = 2)
     btn_run.pack(side = "left", padx = 10, pady = 5)
@@ -73,6 +89,23 @@ if __name__ == "__main__":
     
     btn_stop = Button(frm_ui, command = quit, text = "Stop", width = 10, height = 2)
     btn_stop.pack(side = "left", padx = 10, pady = 5)
+
+    btn_no_wind = Button(frm_ui_2, command = frm_grid.no_wind, text = "Wind: None", width = 10, height = 1)
+    btn_no_wind.pack(side = "left", padx = 10, pady = 5)
+
+    btn_wind_N = Button(frm_ui_2, command = frm_grid.wind_N, text = "Wind: N", width = 10, height = 1)
+    btn_wind_N.pack(side = "left", padx = 10, pady = 5)
+
+    btn_wind_E = Button(frm_ui_2, command = frm_grid.wind_E, text = "Wind: E", width = 10, height = 1)
+    btn_wind_E.pack(side = "left", padx = 10, pady = 5)
+
+    btn_wind_S = Button(frm_ui_2, command = frm_grid.wind_S, text = "Wind: S", width = 10, height = 1)
+    btn_wind_S.pack(side = "left", padx = 10, pady = 5)
+
+    btn_wind_W = Button(frm_ui_2, command = frm_grid.wind_W, text = "Wind: W", width = 10, height = 1)
+    btn_wind_W.pack(side = "left", padx = 10, pady = 5)
+
+
 
     root.mainloop()
 
