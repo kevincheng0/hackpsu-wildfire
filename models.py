@@ -81,7 +81,7 @@ class CellGrid(Canvas):
     WIND_W = [0.9, 0.7, 0.4, 0.1, 0.07, 0.1, 0.4, 0.7]
 
     def __init__(self,master, rowNumber, columnNumber, cellSize, *args, **kwargs):
-        Canvas.__init__(self, master, width = cellSize * columnNumber , height = cellSize * rowNumber, bg = "Coral2")
+        Canvas.__init__(self, master, width = cellSize * columnNumber , height = cellSize * rowNumber, bg = "PeachPuff3")
 
         self.winfo_toplevel().title("Basic Fire Model")
         self.cellSize = cellSize
